@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Voxel QR Tree</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:#0f0e13; /* Dark background */
+    font-family:'Space Mono',monospace;
+    overflow:hidden;
+    height:100vh;
+    width:100vw;
+  }
+  #scene{width:100%;height:100vh;display:block}
+  
+  /* Floating UI styling */
+  .controls{
+    position:fixed;
+    bottom:32px;
+    left:50%;
+    transform:translateX(-50%);
+    width:calc(100% - 48px);
+    max-width:480px;
+    padding:16px 20px;
+    background:rgba(24, 24, 28, 0.7);
+    backdrop-filter:blur(16px);
+    -webkit-backdrop-filter:blur(16px);
+    border:1px solid rgba(255,255,255,0.08);
+    border-radius:24px;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    z-index:10;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  }
+  .controls .row{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    width:100%;
+  }
+  .controls label{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:2px;
+    color:#a09888;
+    padding-left: 4px;
+  }
+  .controls input{
+    flex:1;
+    padding:14px 18px;
+    border:1px solid rgba(255,255,255,0.1);
+    border-radius:14px;
+    font-size:14px;
+    font-family:inherit;
+    background:rgba(0,0,0,0.3);
+    color:#fff;
+    outline:none;
+    transition:border-color .3s,box-shadow .3s;
+  }
+  .controls input:focus{
+    border-color:rgba(255,255,255,0.4);
+    box-shadow:0 0 0 4px rgba(255,255,255,0.05);
+  }
+  .controls input::placeholder{color:#666}
+  
+  .scan-btn{
+    padding:14px 22px;
+    border:1px solid rgba(255,255,255,0.1);
+    border-radius:14px;
+    background:rgba(255,255,255,0.05);
+    font-family:inherit;
+    font-size:13px;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    font-weight:bold;
+    color:#fff;
+    cursor:pointer;
+    transition:all .2s ease;
+    white-space:nowrap;
+    user-select:none;
+  }
+  .scan-btn:hover{
+    background:rgba(255,255,255,0.15);
+  }
+  .scan-btn.active{
+    background:#fff;
+    color:#000;
+  }
+  
+  .badge{
+    position:fixed;
+    top:24px;left:50%;transform:translateX(-50%);
+    font-size:12px;
+    letter-spacing:3px;
+    text-transform:uppercase;
+    color:#888;
+    background:rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.05);
+    padding:8px 18px;
+    border-radius:20px;
+    pointer-events:none;
+    z-index:10;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+</style>
+</head>
+<body>
+<div class="badge">Voxel QR</div>
+<canvas id="scene"></canvas>
+<div class="controls">
+  <label>Paste a URL</label>
+  <div class="row">
+    <input id="urlInput" type="text" placeholder="https://your-link-here.com" spellcheck="false" autocomplete="off">
+    <button class="scan-btn" id="scanBtn">Scan</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  const BLOCK = 0.48;
+  const GAP = 0.04;
+  const UNIT = BLOCK + GAP;
+  const QR_HEIGHT = 0.25;
+  const PETAL_COUNT = 40;
+
+  // Generate random purple-pink base hue (0.75 to 0.95)
+  const baseHue = 0.75 + Math.random() * 0.20;
+  
+  function genColor(hOffset, s, l) {
+    const color = new THREE.Color();
+    // Keep lightness below 0.6 so it remains high-contrast against the white base
+    color.setHSL((baseHue + hOffset) % 1.0, s, l);
+    return color.getHex();
+  }
+
+  const dynamicPink = [
+    genColor(0, 0.8, 0.4),
+    genColor(0.02, 0.7, 0.5),
+    genColor(-0.02, 0.9, 0.45),
+    genColor(0.05, 0.8, 0.35)
+  ];
+  
+  const dynamicFoliage = [
+    genColor(0, 0.7, 0.45),
+    genColor(0.02, 0.8, 0.5),
+    genColor(-0.02, 0.6, 0.35),
+    genColor(0.05, 0.9, 0.55),
+    genColor(0, 0.8, 0.4)
+  ];
+  
+  const dynamicPetal = [
+    genColor(0, 0.8, 0.65),
+    genColor(0.02, 0.7, 0.7),
+    genColor(-0.02, 0.9, 0.6),
+    genColor(0.05, 0.6, 0.75)
+  ];
+
+  const C = {
+    qrGreen: [0x1b5e20, 0x2e7d32, 0x388e3c, 0x005005], 
+    qrPink:  dynamicPink,
+    qrLight: 0xffffff, 
+    trunk:   [0x7c5b3a, 0x8b6944, 0x6e5030],
+    foliage: dynamicFoliage,
+    petal:   dynamicPetal,
+  };
+
+  /* ── renderer ── */
+  const canvas = document.getElementById('scene');
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias:true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  
+  // Dark background setup
+  const bgHex = 0x0f0e13;
+  renderer.setClearColor(bgHex, 1);
+
+  const scene = new THREE.Scene();
+  scene.fog = new THREE.FogExp2(bgHex, 0.012);
+
+  /* ── camera ── */
+  let w = window.innerWidth, h = window.innerHeight;
+  const frustum = 16;
+  const camera = new THREE.OrthographicCamera(-1,1,1,-1,-100,200);
+
+  const ISO_POS  = new THREE.Vector3(28, 24, 28);
+  const ISO_LOOK = new THREE.Vector3(0, 3, 0);
+
+  let camPos    = ISO_POS.clone();
+  let camLook   = ISO_LOOK.clone();
+  let targetPos = ISO_POS.clone();
+  let targetLook= ISO_LOOK.clone();
+  let scanMode  = false;
+  let targetFrustum = frustum;
+  let currentFrustum = frustum;
+
+  function updateScanFraming() {
+    if (!scanMode) return;
+    const aspect = window.innerWidth / window.innerHeight;
+    
+    let baseFrustum = (lastQRCount * UNIT) / 2 + 5.0; 
+    let scanFrustum = aspect < 1 ? baseFrustum / aspect : baseFrustum;
+    
+    targetPos.set(0, 50, 0.001);
+    targetLook.set(0, 0, 0);
+    targetFrustum = scanFrustum;
+  }
+
+  function updateCameraBounds(){
+    w = window.innerWidth; h = window.innerHeight;
+    const a = w / h;
+    camera.left   = -currentFrustum * a;
+    camera.right  =  currentFrustum * a;
+    camera.top    =  currentFrustum;
+    camera.bottom = -currentFrustum;
+    camera.updateProjectionMatrix();
+    renderer.setSize(w, h);
+    if (scanMode) updateScanFraming();
+  }
+  updateCameraBounds();
+  window.addEventListener('resize', updateCameraBounds);
+
+  /* ── lights ── */
+  scene.add(new THREE.AmbientLight(0xffffff, 0.45)); // Adjusted for dark mode
+  const dir = new THREE.DirectionalLight(0xfff8f0, 1.2); // Slightly stronger
+  dir.position.set(8, 16, 6);
+  dir.castShadow = true;
+  dir.shadow.mapSize.set(1024, 1024);
+  dir.shadow.camera.left = -20; dir.shadow.camera.right = 20;
+  dir.shadow.camera.top = 20;   dir.shadow.camera.bottom = -20;
+  dir.shadow.bias = -0.001;
+  scene.add(dir);
+  
+  let targetLightPos = new THREE.Vector3(8, 16, 6);
+
+  const fill = new THREE.DirectionalLight(0x8877aa, 0.6); // Cooler fill for dark background
+  fill.position.set(-6, 8, -4);
+  scene.add(fill);
+
+  /* ── groups ── */
+  const qrGroup    = new THREE.Group();
+  const treeGroup  = new THREE.Group();
+  const petalGroup = new THREE.Group();
+  scene.add(qrGroup, treeGroup, petalGroup);
+
+  /* ── geometry / materials ── */
+  const blockGeo = new THREE.BoxGeometry(BLOCK, QR_HEIGHT, BLOCK);
+  const voxGeo   = new THREE.BoxGeometry(BLOCK*0.95, BLOCK*0.95, BLOCK*0.95);
+  const petalGeo = new THREE.BoxGeometry(0.15, 0.05, 0.15);
+
+  const matCache = {};
+  function getMat(c){ return matCache[c] || (matCache[c] = new THREE.MeshLambertMaterial({color:c})); }
+
+  /* shadow catcher */
+  // Darker shadow opacity since background is dark
+  const shd = new THREE.Mesh(new THREE.PlaneGeometry(60,60), new THREE.ShadowMaterial({opacity:0.4}));
+  shd.rotation.x = -Math.PI/2; shd.position.y = -0.01; shd.receiveShadow = true;
+  scene.add(shd);
+
+  /* ── seeded rng ── */
+  function srng(seed){
+    let s=0;
+    for(let i=0;i<seed.length;i++) s=((s<<5)-s+seed.charCodeAt(i))|0;
+    return ()=>{ s=(s*16807)%2147483647; if(s<0)s+=2147483647; return s/2147483647; };
+  }
+
+  /* ── build qr ── */
+  let lastQRCount = 21;
+  function buildQR(url){
+    while(qrGroup.children.length) qrGroup.remove(qrGroup.children[0]);
+    let modules=null, count=21;
+    if(url && url.length){
+      try{
+        const qr=qrcode(0,'M'); qr.addData(url); qr.make();
+        count=qr.getModuleCount(); modules=[];
+        for(let r=0;r<count;r++){ modules[r]=[]; for(let c=0;c<count;c++) modules[r][c]=qr.isDark(r,c); }
+      }catch(e){ count=21; modules=null; }
+    }
+    lastQRCount = count;
+    const off=(count*UNIT)/2-UNIT/2;
+    const rng=srng(url||'empty');
+    
+    for(let r=0;r<count;r++){
+      for(let c=0;c<count;c++){
+        const dark=modules?modules[r][c]:false;
+        let col;
+
+        if (dark) {
+          const isFinder = (r < 7 && c < 7) || 
+                           (r < 7 && c >= count - 7) || 
+                           (r >= count - 7 && c < 7);
+
+          if (isFinder) {
+            col = C.qrGreen[Math.floor(rng() * C.qrGreen.length)];
+          } else {
+            const cx = count / 2;
+            const cy = count / 2;
+            const dx = c - cx;
+            const dy = r - cy;
+            const dist = Math.sqrt(dx*dx + dy*dy);
+            const maxDist = count / 2;
+            
+            const normalizedDist = dist / maxDist;
+            const noise = rng() * 0.4 - 0.2;
+
+            if (normalizedDist + noise < 0.65) {
+              col = C.qrPink[Math.floor(rng() * C.qrPink.length)];
+            } else {
+              col = C.qrGreen[Math.floor(rng() * C.qrGreen.length)];
+            }
+          }
+        } else {
+          col = C.qrLight;
+        }
+
+        const m=new THREE.Mesh(blockGeo,getMat(col));
+        m.position.set(c*UNIT-off, dark?QR_HEIGHT/2+0.02:QR_HEIGHT/2, r*UNIT-off);
+        m.castShadow=dark; m.receiveShadow=true;
+        qrGroup.add(m);
+      }
+    }
+    const bs=count*UNIT+0.6;
+    const base=new THREE.Mesh(new THREE.BoxGeometry(bs,0.08,bs),getMat(0xffffff));
+    base.position.y=-0.04; base.receiveShadow=true;
+    qrGroup.add(base);
+  }
+
+  /* ── build tree ── */
+  const petals=[];
+  function buildTree(url){
+    while(treeGroup.children.length) treeGroup.remove(treeGroup.children[0]);
+    while(petalGroup.children.length) petalGroup.remove(petalGroup.children[0]);
+    petals.length=0;
+    if(!url||!url.length) return;
+    const growth=Math.min(url.length/25,1);
+    const rng=srng(url+'tree');
+    const trunkH=Math.max(2,Math.floor(2+growth*7));
+    for(let y=0;y<trunkH;y++){
+      const m=new THREE.Mesh(voxGeo,getMat(C.trunk[Math.floor(rng()*C.trunk.length)]));
+      m.position.set(0, y*BLOCK*0.95+QR_HEIGHT+BLOCK*0.45, 0);
+      m.castShadow=true; treeGroup.add(m);
+      if(y>2&&y<trunkH-1&&rng()>0.6){
+        const bm=new THREE.Mesh(voxGeo,getMat(C.trunk[Math.floor(rng()*C.trunk.length)]));
+        bm.position.set((rng()>0.5?1:-1)*BLOCK*0.95, y*BLOCK*0.95+QR_HEIGHT+BLOCK*0.45, (rng()>0.5?1:-1)*BLOCK*0.5*(rng()>0.5?1:0));
+        bm.castShadow=true; treeGroup.add(bm);
+      }
+    }
+    const canopyBase=trunkH*BLOCK*0.95+QR_HEIGHT;
+    const maxR=Math.max(1,Math.floor(1+growth*4));
+    const layers=Math.max(1,Math.floor(1+growth*5));
+    for(let ly=0;ly<layers;ly++){
+      const yPos=canopyBase+ly*BLOCK*0.9;
+      const nY=ly/(layers-1||1);
+      const rF=1-Math.pow(nY*2-0.8,2)*0.6;
+      const r=Math.max(1,Math.round(maxR*rF));
+      for(let x=-r;x<=r;x++){
+        for(let z=-r;z<=r;z++){
+          const d=Math.sqrt(x*x+z*z);
+          if(d>r+0.5) continue;
+          if(rng()>0.25+(1-d/(r+1))*0.3) continue;
+          const m=new THREE.Mesh(voxGeo,getMat(C.foliage[Math.floor(rng()*C.foliage.length)]));
+          m.position.set(x*BLOCK*0.95+(rng()-0.5)*0.08, yPos+(rng()-0.5)*0.1, z*BLOCK*0.95+(rng()-0.5)*0.08);
+          m.castShadow=true; treeGroup.add(m);
+        }
+      }
+    }
+    if(growth>0.5){
+      for(let i=0;i<Math.floor(growth*6);i++){
+        const m=new THREE.Mesh(voxGeo,getMat(C.foliage[Math.floor(rng()*C.foliage.length)]));
+        m.position.set((rng()-0.5)*maxR*BLOCK, canopyBase+layers*BLOCK*0.9+rng()*BLOCK, (rng()-0.5)*maxR*BLOCK);
+        m.castShadow=true; treeGroup.add(m);
+      }
+    }
+    const topY=canopyBase+layers*BLOCK*0.9+BLOCK;
+    const pc=Math.floor(growth*PETAL_COUNT);
+    for(let i=0;i<pc;i++){
+      const m=new THREE.Mesh(petalGeo,getMat(C.petal[Math.floor(Math.random()*C.petal.length)]));
+      m.position.set((Math.random()-0.5)*maxR*2.5, Math.random()*topY, (Math.random()-0.5)*maxR*2.5);
+      m.rotation.set(Math.random()*Math.PI,Math.random()*Math.PI,Math.random()*Math.PI);
+      petalGroup.add(m);
+      petals.push({mesh:m, speed:0.002+Math.random()*0.004, drift:(Math.random()-0.5)*0.008, driftZ:(Math.random()-0.5)*0.008, spin:(Math.random()-0.5)*0.02, topY, radius:maxR});
+    }
+  }
+
+  /* ── scan toggle ── */
+  const scanBtn=document.getElementById('scanBtn');
+  scanBtn.addEventListener('click',()=>{
+    scanMode=!scanMode;
+    scanBtn.classList.toggle('active',scanMode);
+    scanBtn.textContent=scanMode?'Iso':'Scan';
+    
+    if (scanMode) {
+      updateScanFraming();
+      targetLightPos.set(0, 20, 0); 
+    } else {
+      targetPos.copy(ISO_POS);
+      targetLook.copy(ISO_LOOK);
+      targetFrustum = frustum;
+      targetLightPos.set(8, 16, 6);
+    }
+    
+    treeGroup.visible=!scanMode;
+    petalGroup.visible=!scanMode;
+  });
+
+  /* ── init ── */
+  buildQR('https://helloooooooooooooooo.fyi');
+  buildTree('https://helloooooooooooooooo.fyi');
+
+  let debounce=null;
+  document.getElementById('urlInput').addEventListener('input',e=>{
+    clearTimeout(debounce);
+    debounce=setTimeout(()=>{
+      const url=e.target.value.trim();
+      buildQR(url);
+      buildTree(url);
+      if(scanMode) updateScanFraming();
+    },200);
+  });
+
+  /* ── loop ── */
+  function animate(){
+    requestAnimationFrame(animate);
+    
+    camPos.lerp(targetPos,0.15);
+    camLook.lerp(targetLook,0.15);
+    camera.position.copy(camPos);
+    camera.lookAt(camLook);
+    
+    dir.position.lerp(targetLightPos, 0.15);
+    
+    currentFrustum += (targetFrustum - currentFrustum) * 0.15;
+    updateCameraBounds();
+    
+    for(const p of petals){
+      p.mesh.position.y-=p.speed;
+      p.mesh.position.x+=p.drift;
+      p.mesh.position.z+=p.driftZ;
+      p.mesh.rotation.x+=p.spin;
+      p.mesh.rotation.z+=p.spin*0.7;
+      if(p.mesh.position.y<-0.5){
+        p.mesh.position.y=p.topY+Math.random()*2;
+        p.mesh.position.x=(Math.random()-0.5)*p.radius*2.5;
+        p.mesh.position.z=(Math.random()-0.5)*p.radius*2.5;
+      }
+    }
+    renderer.render(scene,camera);
+  }
+  animate();
+})();
+</script>
+</body>
+</html>

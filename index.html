@@ -22,9 +22,9 @@
   .controls{
     position:fixed;
     bottom:32px;
-    left:50%;
-    transform:translateX(-50%);
-    width:calc(100% - 48px);
+    left:24px;
+    right:24px;
+    margin:0 auto;
     max-width:480px;
     padding:16px 20px;
     background:rgba(24, 24, 28, 0.7);
@@ -56,7 +56,7 @@
     padding:14px 18px;
     border:1px solid rgba(255,255,255,0.1);
     border-radius:14px;
-    font-size:14px;
+    font-size:16px; /* Increased to 16px to prevent iOS auto-zoom bug */
     font-family:inherit;
     background:rgba(0,0,0,0.3);
     color:#fff;

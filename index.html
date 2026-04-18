@@ -37,7 +37,20 @@
     gap:12px;
     z-index:10;
     box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    transform: translateY(0) scale(1);
   }
+  
+  /* Centered cinematic focus state */
+  .controls.focused {
+    bottom: 50%;
+    transform: translateY(50%) scale(1.02);
+    max-width: 540px;
+    background: rgba(24, 24, 28, 0.92);
+    /* Massive spread shadow creates a backdrop dimming effect */
+    box-shadow: 0 30px 60px rgba(0,0,0,0.8), 0 0 0 100vw rgba(15, 14, 19, 0.7);
+  }
+
   .controls .row{
     display:flex;
     align-items:center;
@@ -61,8 +74,16 @@
     background:rgba(0,0,0,0.3);
     color:#fff;
     outline:none;
-    transition:border-color .3s,box-shadow .3s;
+    transition:all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   }
+  
+  .controls.focused input {
+    padding: 18px 22px;
+    font-size: 18px;
+    border-color: rgba(255,255,255,0.3);
+    background: rgba(0,0,0,0.5);
+  }
+
   .controls input:focus{
     border-color:rgba(255,255,255,0.4);
     box-shadow:0 0 0 4px rgba(255,255,255,0.05);
@@ -70,21 +91,27 @@
   .controls input::placeholder{color:#666}
   
   .scan-btn{
-    padding:14px 22px;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
     border:1px solid rgba(255,255,255,0.1);
     border-radius:14px;
     background:rgba(255,255,255,0.05);
-    font-family:inherit;
-    font-size:13px;
-    letter-spacing:1px;
-    text-transform:uppercase;
-    font-weight:bold;
     color:#fff;
     cursor:pointer;
-    transition:all .2s ease;
-    white-space:nowrap;
+    transition:all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
     user-select:none;
   }
+  
+  .controls.focused .scan-btn {
+    width: 58px;
+    height: 58px;
+    border-radius: 16px;
+  }
+
   .scan-btn:hover{
     background:rgba(255,255,255,0.15);
   }
@@ -118,7 +145,9 @@
   <label>Paste a URL</label>
   <div class="row">
     <input id="urlInput" type="text" placeholder="https://your-link-here.com" spellcheck="false" autocomplete="off">
-    <button class="scan-btn" id="scanBtn">Scan</button>
+    <button class="scan-btn" id="scanBtn" aria-label="Scan QR">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+    </button>
   </div>
 </div>
 
@@ -391,11 +420,33 @@
   }
 
   /* ── scan toggle ── */
-  const scanBtn=document.getElementById('scanBtn');
+  const scanBtn = document.getElementById('scanBtn');
+  const urlInput = document.getElementById('urlInput');
+  const controls = document.querySelector('.controls');
+  
+  const iconCheck = `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+  const iconClose = `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
+
+  // Cinematic focus animation for mobile typing
+  urlInput.addEventListener('focus', () => {
+    controls.classList.add('focused');
+  });
+
+  urlInput.addEventListener('blur', () => {
+    controls.classList.remove('focused');
+  });
+
+  // Prevent input blur when tapping the button directly
+  scanBtn.addEventListener('mousedown', (e) => {
+    e.preventDefault();
+  });
+
   scanBtn.addEventListener('click',()=>{
+    urlInput.blur(); // Force keyboard to close and UI to snap back down
+    
     scanMode=!scanMode;
     scanBtn.classList.toggle('active',scanMode);
-    scanBtn.textContent=scanMode?'Iso':'Scan';
+    scanBtn.innerHTML = scanMode ? iconClose : iconCheck;
     
     if (scanMode) {
       updateScanFraming();

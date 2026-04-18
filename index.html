@@ -43,12 +43,20 @@
   
   /* Centered cinematic focus state */
   .controls.focused {
-    bottom: 50%;
-    transform: translateY(50%) scale(1.02);
     max-width: 540px;
     background: rgba(24, 24, 28, 0.92);
     /* Massive spread shadow creates a backdrop dimming effect */
     box-shadow: 0 30px 60px rgba(0,0,0,0.8), 0 0 0 100vw rgba(15, 14, 19, 0.7);
+    /* Desktop centering using purely transform to bypass iOS reflow bugs */
+    transform: translateY(calc(-50vh + 50% + 32px)) scale(1.02);
+  }
+
+  /* Mobile specific centering to account for virtual keyboard */
+  @media (max-width: 768px) {
+    .controls.focused {
+      /* Lifts the container to the exact optical center of the remaining space above the keyboard */
+      transform: translateY(-220px) scale(1.02);
+    }
   }
 
   .controls .row{

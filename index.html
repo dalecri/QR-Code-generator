@@ -56,6 +56,7 @@
   }
   .controls input{
     flex:1;
+    min-width: 0; /* Prevents flex blowout on small screens */
     padding:14px 18px;
     border:1px solid rgba(255,255,255,0.1);
     border-radius:14px;
@@ -200,29 +201,74 @@
 
   /* Mobile specific animations and layouts */
   @media (max-width: 768px) {
+    .controls {
+      left: 16px;
+      right: 16px;
+      padding: 14px 16px;
+    }
     .controls.focused {
-      max-width: 540px;
-      background: rgba(24, 24, 28, 0.92);
-      box-shadow: 0 30px 60px rgba(0,0,0,0.8), 0 0 0 100vw rgba(15, 14, 19, 0.7);
-      transform: translateY(-220px) scale(1.02);
+      max-width: 100%;
+      background: rgba(24, 24, 28, 0.95);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.8), 0 0 0 100vw rgba(15, 14, 19, 0.85);
+      /* Native mobile keyboards pan the viewport natively. We just provide a subtle lift. */
+      transform: translateY(-16px) scale(1.02);
     }
     .controls.focused input {
-      padding: 18px 22px;
-      font-size: 18px;
-      border-color: rgba(255,255,255,0.3);
-      background: rgba(0,0,0,0.5);
+      padding: 14px 18px; /* Do not scale up aggressively to avoid bleeding */
+      font-size: 16px;
     }
     .controls.focused .scan-btn {
-      width: 58px;
-      height: 58px;
-      border-radius: 16px;
+      width: 50px; /* Lock width so it never bleeds out of the flex container */
+      height: 50px;
+      border-radius: 14px;
     }
-    /* Hide FAB when typing on mobile */
+    
+    /* Move FAB to top left on mobile to clear the inputs entirely */
+    .fab-container { 
+      bottom: auto;
+      top: 20px;
+      left: 20px;
+    }
+    
+    /* Hide FAB completely when typing on mobile */
     body:has(.controls.focused) .fab-container {
       opacity: 0;
       pointer-events: none;
     }
-    .fab-container { bottom: 120px; }
+
+    /* Convert Theme Menu into a bottom-sheet for mobile */
+    .theme-menu {
+      position: fixed;
+      bottom: 0;
+      top: auto;
+      left: 0;
+      right: 0;
+      width: 100vw;
+      min-width: unset;
+      border-radius: 28px 28px 0 0;
+      padding: 24px 24px 48px 24px;
+      background: rgba(24, 24, 28, 0.95);
+      box-shadow: 0 -20px 60px rgba(0,0,0,0.8);
+      transform: translateY(100%);
+      transform-origin: center bottom;
+    }
+    .theme-menu.open {
+      transform: translateY(0);
+    }
+    .theme-opt {
+      padding: 16px 20px;
+      font-size: 16px;
+      border-radius: 16px;
+      justify-content: center;
+      background: rgba(255,255,255,0.03);
+      margin-bottom: 8px;
+    }
+    .theme-opt.active {
+      background: rgba(255,255,255,0.15);
+    }
+    .menu-divider {
+      margin: 8px 0;
+    }
   }
 </style>
 </head>

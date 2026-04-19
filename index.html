@@ -40,21 +40,6 @@
     transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
     transform: translateY(0) scale(1);
   }
-  
-  /* Centered cinematic focus state */
-  .controls.focused {
-    max-width: 540px;
-    background: rgba(24, 24, 28, 0.92);
-    box-shadow: 0 30px 60px rgba(0,0,0,0.8), 0 0 0 100vw rgba(15, 14, 19, 0.7);
-    transform: translateY(calc(-50vh + 50% + 32px)) scale(1.02);
-  }
-
-  /* Mobile specific centering */
-  @media (max-width: 768px) {
-    .controls.focused {
-      transform: translateY(-220px) scale(1.02);
-    }
-  }
 
   .controls .row{
     display:flex;
@@ -81,12 +66,7 @@
     outline:none;
     transition:all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   }
-  .controls.focused input {
-    padding: 18px 22px;
-    font-size: 18px;
-    border-color: rgba(255,255,255,0.3);
-    background: rgba(0,0,0,0.5);
-  }
+
   .controls input:focus{
     border-color:rgba(255,255,255,0.4);
     box-shadow:0 0 0 4px rgba(255,255,255,0.05);
@@ -107,11 +87,6 @@
     cursor:pointer;
     transition:all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
     user-select:none;
-  }
-  .controls.focused .scan-btn {
-    width: 58px;
-    height: 58px;
-    border-radius: 16px;
   }
   .scan-btn:hover{
     background:rgba(255,255,255,0.15);
@@ -222,14 +197,31 @@
   .theme-opt:hover { background: rgba(255,255,255,0.1); }
   .theme-opt.active { background: rgba(255,255,255,0.15); font-weight: bold; }
   .menu-divider { height: 1px; background: rgba(255,255,255,0.1); margin: 4px 0; }
-  
-  /* Hide FAB when typing on mobile */
-  body:has(.controls.focused) .fab-container {
-    opacity: 0;
-    pointer-events: none;
-  }
-  
+
+  /* Mobile specific animations and layouts */
   @media (max-width: 768px) {
+    .controls.focused {
+      max-width: 540px;
+      background: rgba(24, 24, 28, 0.92);
+      box-shadow: 0 30px 60px rgba(0,0,0,0.8), 0 0 0 100vw rgba(15, 14, 19, 0.7);
+      transform: translateY(-220px) scale(1.02);
+    }
+    .controls.focused input {
+      padding: 18px 22px;
+      font-size: 18px;
+      border-color: rgba(255,255,255,0.3);
+      background: rgba(0,0,0,0.5);
+    }
+    .controls.focused .scan-btn {
+      width: 58px;
+      height: 58px;
+      border-radius: 16px;
+    }
+    /* Hide FAB when typing on mobile */
+    body:has(.controls.focused) .fab-container {
+      opacity: 0;
+      pointer-events: none;
+    }
     .fab-container { bottom: 120px; }
   }
 </style>

@@ -10,7 +10,7 @@
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
   body{
-    background:#0f0e13; /* Dark background */
+    background:#0f0e13;
     font-family:'Space Mono',monospace;
     overflow:hidden;
     height:100vh;
@@ -45,16 +45,13 @@
   .controls.focused {
     max-width: 540px;
     background: rgba(24, 24, 28, 0.92);
-    /* Massive spread shadow creates a backdrop dimming effect */
     box-shadow: 0 30px 60px rgba(0,0,0,0.8), 0 0 0 100vw rgba(15, 14, 19, 0.7);
-    /* Desktop centering using purely transform to bypass iOS reflow bugs */
     transform: translateY(calc(-50vh + 50% + 32px)) scale(1.02);
   }
 
-  /* Mobile specific centering to account for virtual keyboard */
+  /* Mobile specific centering */
   @media (max-width: 768px) {
     .controls.focused {
-      /* Lifts the container to the exact optical center of the remaining space above the keyboard */
       transform: translateY(-220px) scale(1.02);
     }
   }
@@ -77,21 +74,19 @@
     padding:14px 18px;
     border:1px solid rgba(255,255,255,0.1);
     border-radius:14px;
-    font-size:16px; /* Increased to 16px to prevent iOS auto-zoom bug */
+    font-size:16px;
     font-family:inherit;
     background:rgba(0,0,0,0.3);
     color:#fff;
     outline:none;
     transition:all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   }
-  
   .controls.focused input {
     padding: 18px 22px;
     font-size: 18px;
     border-color: rgba(255,255,255,0.3);
     background: rgba(0,0,0,0.5);
   }
-
   .controls input:focus{
     border-color:rgba(255,255,255,0.4);
     box-shadow:0 0 0 4px rgba(255,255,255,0.05);
@@ -113,13 +108,11 @@
     transition:all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
     user-select:none;
   }
-  
   .controls.focused .scan-btn {
     width: 58px;
     height: 58px;
     border-radius: 16px;
   }
-
   .scan-btn:hover{
     background:rgba(255,255,255,0.15);
   }
@@ -128,27 +121,137 @@
     color:#000;
   }
   
-  .badge{
+  /* Dynamic Top Link */
+  a.badge{
     position:fixed;
     top:24px;left:50%;transform:translateX(-50%);
     font-size:12px;
     letter-spacing:3px;
     text-transform:uppercase;
-    color:#888;
-    background:rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.05);
-    padding:8px 18px;
-    border-radius:20px;
-    pointer-events:none;
+    color:#fff;
+    background:rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.15);
+    padding:10px 20px;
+    border-radius:24px;
     z-index:10;
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
+    text-decoration: none;
+    pointer-events: none;
+    transition: all 0.2s;
+    white-space: nowrap;
+    max-width: 90vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  a.badge.has-link {
+    pointer-events: all;
+    background: rgba(255,255,255,0.15);
+    border-color: rgba(255,255,255,0.3);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  }
+  a.badge.has-link:hover {
+    background: rgba(255,255,255,0.25);
+    transform: translateX(-50%) scale(1.05);
+  }
+
+  /* Bottom Left Tools */
+  .fab-container {
+    position: fixed;
+    bottom: 32px;
+    left: 24px;
+    z-index: 15;
+    transition: opacity 0.3s;
+  }
+  .fab-btn {
+    width: 50px;
+    height: 50px;
+    border-radius: 14px;
+    background: rgba(24, 24, 28, 0.7);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    transition: all 0.3s ease;
+  }
+  .fab-btn:hover { background: rgba(255,255,255,0.15); }
+  
+  .theme-menu {
+    position: absolute;
+    bottom: calc(100% + 12px);
+    left: 0;
+    background: rgba(24, 24, 28, 0.9);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(10px) scale(0.95);
+    transform-origin: bottom left;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    min-width: 180px;
+  }
+  .theme-menu.open {
+    opacity: 1;
+    pointer-events: all;
+    transform: translateY(0) scale(1);
+  }
+  .theme-opt {
+    padding: 10px 14px;
+    border-radius: 10px;
+    color: #fff;
+    font-size: 13px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .theme-opt:hover { background: rgba(255,255,255,0.1); }
+  .theme-opt.active { background: rgba(255,255,255,0.15); font-weight: bold; }
+  .menu-divider { height: 1px; background: rgba(255,255,255,0.1); margin: 4px 0; }
+  
+  /* Hide FAB when typing on mobile */
+  body:has(.controls.focused) .fab-container {
+    opacity: 0;
+    pointer-events: none;
+  }
+  
+  @media (max-width: 768px) {
+    .fab-container { bottom: 120px; }
   }
 </style>
 </head>
 <body>
-<div class="badge">Voxel QR</div>
+<a class="badge" id="topLink" href="#" target="_blank">VOXEL QR</a>
 <canvas id="scene"></canvas>
+
+<div class="fab-container">
+  <div class="theme-menu" id="themeMenu">
+    <div class="theme-opt active" data-theme="blossom">🌸 Cherry Blossom</div>
+    <div class="theme-opt" data-theme="maple">🍁 Autumn Maple</div>
+    <div class="theme-opt" data-theme="pine">🌲 Alpine Pine</div>
+    <div class="theme-opt" data-theme="frost">❄️ Winter Frost</div>
+    <div class="menu-divider"></div>
+    <div class="theme-opt" id="downloadBtn">⬇️ Download PNG</div>
+  </div>
+  <button class="fab-btn" id="toolToggle" aria-label="Tools">
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>
+  </button>
+</div>
+
 <div class="controls">
   <label>Paste a URL</label>
   <div class="row">
@@ -167,56 +270,48 @@
   const QR_HEIGHT = 0.25;
   const PETAL_COUNT = 40;
 
-  // Generate random autumn maple base hue (0.0 to 0.12 - Reds, Oranges, Golds)
-  const baseHue = Math.random() * 0.12;
-  
-  function genColor(hOffset, s, l) {
-    const color = new THREE.Color();
-    // Keep lightness below 0.6 so it remains high-contrast against the white base
-    // +1.0 ensures the modulo wraps correctly if offset goes negative
-    color.setHSL((baseHue + hOffset + 1.0) % 1.0, s, l);
-    return color.getHex();
-  }
-
-  const dynamicMaple = [
-    genColor(0, 0.85, 0.45),      // Base Red/Orange
-    genColor(0.04, 0.9, 0.5),     // Shift toward bright Orange/Gold
-    genColor(-0.02, 0.85, 0.4),   // Shift toward deep Crimson
-    genColor(0.08, 0.95, 0.45)    // Golden highlight
-  ];
-  
-  const dynamicFoliage = [
-    genColor(0, 0.8, 0.4),
-    genColor(0.05, 0.9, 0.45),
-    genColor(-0.03, 0.85, 0.35),
-    genColor(0.08, 0.9, 0.5),
-    genColor(0.02, 0.85, 0.4)
-  ];
-  
-  const dynamicPetal = [
-    genColor(0, 0.9, 0.55),
-    genColor(0.05, 0.95, 0.6),
-    genColor(-0.02, 0.85, 0.5),
-    genColor(0.08, 0.9, 0.65)
-  ];
-
-  const C = {
-    qrGreen: [0x1b5e20, 0x2e7d32, 0x388e3c, 0x005005], 
-    qrMaple: dynamicMaple,
-    qrLight: 0xffffff, 
-    trunk:   [0x7c5b3a, 0x8b6944, 0x6e5030],
-    foliage: dynamicFoliage,
-    petal:   dynamicPetal,
+  /* ── Themes Engine ── */
+  const THEMES = {
+    blossom: {
+      qrTheme: [0xf0a0c4, 0xe07eaa, 0xd4508b, 0xcc4488, 0xec407a],
+      qrEdge: [0x1b5e20, 0x2e7d32, 0x388e3c],
+      foliage: [0xd4508b, 0xe07eaa, 0xcc4488, 0xf0a0c4, 0xc23d78],
+      petal: [0xf5c0d8, 0xf0a0c4, 0xe888b0, 0xfcd8e8],
+      trunk: [0x7c5b3a, 0x8b6944, 0x6e5030]
+    },
+    maple: {
+      qrTheme: [0xe65100, 0xef6c00, 0xf57c00, 0xd84315, 0xff9800],
+      qrEdge: [0x1b5e20, 0x2e7d32, 0x388e3c], 
+      foliage: [0xd84315, 0xe65100, 0xef6c00, 0xf57c00, 0xbf360c],
+      petal: [0xffb74d, 0xffb300, 0xfb8c00, 0xf57c00],
+      trunk: [0x4e342e, 0x5d4037, 0x3e2723]
+    },
+    pine: {
+      qrTheme: [0x2e7d32, 0x388e3c, 0x43a047, 0x4caf50],
+      qrEdge: [0x1b5e20, 0x003300],
+      foliage: [0x1b5e20, 0x2e7d32, 0x388e3c, 0x43a047, 0x4caf50],
+      petal: [0x81c784, 0xa5d6a7, 0xc8e6c9],
+      trunk: [0x3e2723, 0x4e342e, 0x5d4037]
+    },
+    frost: {
+      qrTheme: [0x0277bd, 0x1565c0, 0x0288d1, 0x039be5],
+      qrEdge: [0x0d47a1, 0x01579b],
+      foliage: [0x4fc3f7, 0x29b6f6, 0x03a9f4, 0x039be5],
+      petal: [0xe1f5fe, 0xb3e5fc, 0x81d4fa, 0xffffff],
+      trunk: [0x546e7a, 0x78909c, 0x455a64]
+    }
   };
+  
+  let currentThemeKey = 'blossom';
 
   /* ── renderer ── */
   const canvas = document.getElementById('scene');
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias:true });
+  // preserveDrawingBuffer is required for allowing users to download the canvas as an image
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, preserveDrawingBuffer: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   
-  // Dark background setup
   const bgHex = 0x0f0e13;
   renderer.setClearColor(bgHex, 1);
 
@@ -242,10 +337,8 @@
   function updateScanFraming() {
     if (!scanMode) return;
     const aspect = window.innerWidth / window.innerHeight;
-    
     let baseFrustum = (lastQRCount * UNIT) / 2 + 5.0; 
     let scanFrustum = aspect < 1 ? baseFrustum / aspect : baseFrustum;
-    
     targetPos.set(0, 50, 0.001);
     targetLook.set(0, 0, 0);
     targetFrustum = scanFrustum;
@@ -266,8 +359,8 @@
   window.addEventListener('resize', updateCameraBounds);
 
   /* ── lights ── */
-  scene.add(new THREE.AmbientLight(0xffffff, 0.45)); // Adjusted for dark mode
-  const dir = new THREE.DirectionalLight(0xfff8f0, 1.2); // Slightly stronger
+  scene.add(new THREE.AmbientLight(0xffffff, 0.45));
+  const dir = new THREE.DirectionalLight(0xfff8f0, 1.2);
   dir.position.set(8, 16, 6);
   dir.castShadow = true;
   dir.shadow.mapSize.set(1024, 1024);
@@ -278,7 +371,7 @@
   
   let targetLightPos = new THREE.Vector3(8, 16, 6);
 
-  const fill = new THREE.DirectionalLight(0x8877aa, 0.6); // Cooler fill for dark background
+  const fill = new THREE.DirectionalLight(0x8877aa, 0.6);
   fill.position.set(-6, 8, -4);
   scene.add(fill);
 
@@ -296,8 +389,6 @@
   const matCache = {};
   function getMat(c){ return matCache[c] || (matCache[c] = new THREE.MeshLambertMaterial({color:c})); }
 
-  /* shadow catcher */
-  // Darker shadow opacity since background is dark
   const shd = new THREE.Mesh(new THREE.PlaneGeometry(60,60), new THREE.ShadowMaterial({opacity:0.4}));
   shd.rotation.x = -Math.PI/2; shd.position.y = -0.01; shd.receiveShadow = true;
   scene.add(shd);
@@ -312,6 +403,7 @@
   /* ── build qr ── */
   let lastQRCount = 21;
   function buildQR(url){
+    const t = THEMES[currentThemeKey];
     while(qrGroup.children.length) qrGroup.remove(qrGroup.children[0]);
     let modules=null, count=21;
     if(url && url.length){
@@ -336,7 +428,7 @@
                            (r >= count - 7 && c < 7);
 
           if (isFinder) {
-            col = C.qrGreen[Math.floor(rng() * C.qrGreen.length)];
+            col = t.qrEdge[Math.floor(rng() * t.qrEdge.length)];
           } else {
             const cx = count / 2;
             const cy = count / 2;
@@ -349,13 +441,13 @@
             const noise = rng() * 0.4 - 0.2;
 
             if (normalizedDist + noise < 0.65) {
-              col = C.qrMaple[Math.floor(rng() * C.qrMaple.length)];
+              col = t.qrTheme[Math.floor(rng() * t.qrTheme.length)];
             } else {
-              col = C.qrGreen[Math.floor(rng() * C.qrGreen.length)];
+              col = t.qrEdge[Math.floor(rng() * t.qrEdge.length)];
             }
           }
         } else {
-          col = C.qrLight;
+          col = 0xffffff;
         }
 
         const m=new THREE.Mesh(blockGeo,getMat(col));
@@ -373,26 +465,31 @@
   /* ── build tree ── */
   const petals=[];
   function buildTree(url){
+    const t = THEMES[currentThemeKey];
     while(treeGroup.children.length) treeGroup.remove(treeGroup.children[0]);
     while(petalGroup.children.length) petalGroup.remove(petalGroup.children[0]);
     petals.length=0;
     if(!url||!url.length) return;
+    
     const growth=Math.min(url.length/25,1);
     const rng=srng(url+'tree');
     const trunkH=Math.max(2,Math.floor(2+growth*7));
+    
     for(let y=0;y<trunkH;y++){
-      const m=new THREE.Mesh(voxGeo,getMat(C.trunk[Math.floor(rng()*C.trunk.length)]));
+      const m=new THREE.Mesh(voxGeo,getMat(t.trunk[Math.floor(rng()*t.trunk.length)]));
       m.position.set(0, y*BLOCK*0.95+QR_HEIGHT+BLOCK*0.45, 0);
       m.castShadow=true; treeGroup.add(m);
       if(y>2&&y<trunkH-1&&rng()>0.6){
-        const bm=new THREE.Mesh(voxGeo,getMat(C.trunk[Math.floor(rng()*C.trunk.length)]));
+        const bm=new THREE.Mesh(voxGeo,getMat(t.trunk[Math.floor(rng()*t.trunk.length)]));
         bm.position.set((rng()>0.5?1:-1)*BLOCK*0.95, y*BLOCK*0.95+QR_HEIGHT+BLOCK*0.45, (rng()>0.5?1:-1)*BLOCK*0.5*(rng()>0.5?1:0));
         bm.castShadow=true; treeGroup.add(bm);
       }
     }
+    
     const canopyBase=trunkH*BLOCK*0.95+QR_HEIGHT;
     const maxR=Math.max(1,Math.floor(1+growth*4));
     const layers=Math.max(1,Math.floor(1+growth*5));
+    
     for(let ly=0;ly<layers;ly++){
       const yPos=canopyBase+ly*BLOCK*0.9;
       const nY=ly/(layers-1||1);
@@ -403,23 +500,25 @@
           const d=Math.sqrt(x*x+z*z);
           if(d>r+0.5) continue;
           if(rng()>0.25+(1-d/(r+1))*0.3) continue;
-          const m=new THREE.Mesh(voxGeo,getMat(C.foliage[Math.floor(rng()*C.foliage.length)]));
+          const m=new THREE.Mesh(voxGeo,getMat(t.foliage[Math.floor(rng()*t.foliage.length)]));
           m.position.set(x*BLOCK*0.95+(rng()-0.5)*0.08, yPos+(rng()-0.5)*0.1, z*BLOCK*0.95+(rng()-0.5)*0.08);
           m.castShadow=true; treeGroup.add(m);
         }
       }
     }
+    
     if(growth>0.5){
       for(let i=0;i<Math.floor(growth*6);i++){
-        const m=new THREE.Mesh(voxGeo,getMat(C.foliage[Math.floor(rng()*C.foliage.length)]));
+        const m=new THREE.Mesh(voxGeo,getMat(t.foliage[Math.floor(rng()*t.foliage.length)]));
         m.position.set((rng()-0.5)*maxR*BLOCK, canopyBase+layers*BLOCK*0.9+rng()*BLOCK, (rng()-0.5)*maxR*BLOCK);
         m.castShadow=true; treeGroup.add(m);
       }
     }
+    
     const topY=canopyBase+layers*BLOCK*0.9+BLOCK;
     const pc=Math.floor(growth*PETAL_COUNT);
     for(let i=0;i<pc;i++){
-      const m=new THREE.Mesh(petalGeo,getMat(C.petal[Math.floor(Math.random()*C.petal.length)]));
+      const m=new THREE.Mesh(petalGeo,getMat(t.petal[Math.floor(Math.random()*t.petal.length)]));
       m.position.set((Math.random()-0.5)*maxR*2.5, Math.random()*topY, (Math.random()-0.5)*maxR*2.5);
       m.rotation.set(Math.random()*Math.PI,Math.random()*Math.PI,Math.random()*Math.PI);
       petalGroup.add(m);
@@ -427,30 +526,37 @@
     }
   }
 
-  /* ── scan toggle ── */
+  /* ── UI Logic ── */
   const scanBtn = document.getElementById('scanBtn');
   const urlInput = document.getElementById('urlInput');
   const controls = document.querySelector('.controls');
+  const topLink = document.getElementById('topLink');
+  
+  const toolToggle = document.getElementById('toolToggle');
+  const themeMenu = document.getElementById('themeMenu');
+  const themeOpts = document.querySelectorAll('.theme-opt[data-theme]');
+  const downloadBtn = document.getElementById('downloadBtn');
   
   const iconCheck = `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
   const iconClose = `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
 
-  // Cinematic focus animation for mobile typing
-  urlInput.addEventListener('focus', () => {
-    controls.classList.add('focused');
+  // Handle Enter Key
+  urlInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      urlInput.blur();
+      if (!scanMode) scanBtn.click();
+    }
   });
 
-  urlInput.addEventListener('blur', () => {
-    controls.classList.remove('focused');
-  });
+  // Cinematic focus animation
+  urlInput.addEventListener('focus', () => controls.classList.add('focused'));
+  urlInput.addEventListener('blur', () => controls.classList.remove('focused'));
 
-  // Prevent input blur when tapping the button directly
-  scanBtn.addEventListener('mousedown', (e) => {
-    e.preventDefault();
-  });
+  scanBtn.addEventListener('mousedown', (e) => e.preventDefault());
 
   scanBtn.addEventListener('click',()=>{
-    urlInput.blur(); // Force keyboard to close and UI to snap back down
+    urlInput.blur();
     
     scanMode=!scanMode;
     scanBtn.classList.toggle('active',scanMode);
@@ -470,20 +576,73 @@
     petalGroup.visible=!scanMode;
   });
 
-  /* ── init ── */
-  buildQR('https://helloooooooooooooooo.fyi');
-  buildTree('https://helloooooooooooooooo.fyi');
+  // Tools Menu Toggle
+  toolToggle.addEventListener('click', (e) => {
+    e.stopPropagation();
+    themeMenu.classList.toggle('open');
+  });
+
+  // Close menu when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.fab-container')) {
+      themeMenu.classList.remove('open');
+    }
+  });
+
+  // Handle Theme Switching
+  themeOpts.forEach(opt => {
+    opt.addEventListener('click', (e) => {
+      themeOpts.forEach(o => o.classList.remove('active'));
+      e.currentTarget.classList.add('active');
+      currentThemeKey = e.currentTarget.dataset.theme;
+      
+      buildQR(urlInput.value.trim());
+      buildTree(urlInput.value.trim());
+      themeMenu.classList.remove('open');
+    });
+  });
+
+  // Handle Download Image
+  downloadBtn.addEventListener('click', () => {
+    renderer.render(scene, camera); // Ensure frame is fresh
+    const dataURL = renderer.domElement.toDataURL("image/png");
+    const a = document.createElement('a');
+    a.href = dataURL;
+    a.download = `VoxelQR_${currentThemeKey}_${Date.now()}.png`;
+    a.click();
+    themeMenu.classList.remove('open');
+  });
 
   let debounce=null;
-  document.getElementById('urlInput').addEventListener('input',e=>{
+  urlInput.addEventListener('input',e=>{
     clearTimeout(debounce);
     debounce=setTimeout(()=>{
       const url=e.target.value.trim();
+      
+      // Update the clickable badge
+      if (url) {
+        let validUrl = url;
+        if (!/^https?:\/\//i.test(validUrl)) validUrl = 'https://' + validUrl;
+        topLink.href = validUrl;
+        
+        let displayUrl = url.replace(/^https?:\/\//i, '');
+        topLink.textContent = displayUrl.length > 25 ? displayUrl.substring(0, 25) + '...' : displayUrl;
+        topLink.classList.add('has-link');
+      } else {
+        topLink.href = '#';
+        topLink.textContent = 'VOXEL QR';
+        topLink.classList.remove('has-link');
+      }
+
       buildQR(url);
       buildTree(url);
       if(scanMode) updateScanFraming();
     },200);
   });
+
+  /* ── init ── */
+  buildQR('');
+  buildTree('');
 
   /* ── loop ── */
   function animate(){

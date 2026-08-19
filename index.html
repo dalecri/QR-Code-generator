@@ -10,161 +10,117 @@
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
   body{
-    background:#0f0e13;
+    background:#160d16;
     font-family:'Space Mono',monospace;
     overflow:hidden;
     height:100vh;
     width:100vw;
+    transition: background-color 0.8s cubic-bezier(0.16, 1, 0.3, 1);
   }
   #scene{width:100%;height:100vh;display:block}
-  
-  /* Floating UI styling */
-  .controls{
-    position:fixed;
-    bottom:32px;
-    left:24px;
-    right:24px;
-    margin:0 auto;
-    max-width:480px;
-    padding:16px 20px;
-    background:rgba(24, 24, 28, 0.7);
-    backdrop-filter:blur(16px);
-    -webkit-backdrop-filter:blur(16px);
-    border:1px solid rgba(255,255,255,0.08);
-    border-radius:24px;
-    display:flex;
-    flex-direction:column;
-    gap:12px;
-    z-index:10;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-    transform: translateY(0) scale(1);
-  }
 
-  .controls .row{
-    display:flex;
-    align-items:center;
-    gap:12px;
-    width:100%;
-  }
-  .controls label{
-    font-size:11px;
-    text-transform:uppercase;
-    letter-spacing:2px;
-    color:#a09888;
-    padding-left: 4px;
-  }
-  .controls input{
-    flex:1;
-    min-width: 0; /* Prevents flex blowout on small screens */
-    padding:14px 18px;
-    border:1px solid rgba(255,255,255,0.1);
-    border-radius:14px;
-    font-size:16px;
-    font-family:inherit;
-    background:rgba(0,0,0,0.3);
-    color:#fff;
-    outline:none;
-    transition:all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-
-  .controls input:focus{
-    border-color:rgba(255,255,255,0.4);
-    box-shadow:0 0 0 4px rgba(255,255,255,0.05);
-  }
-  .controls input::placeholder{color:#666}
-  
-  .scan-btn{
-    width: 50px;
-    height: 50px;
+  /* ── Minimal Header & Divider ── */
+  .app-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 56px;
     display: flex;
     align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    border:1px solid rgba(255,255,255,0.1);
-    border-radius:14px;
-    background:rgba(255,255,255,0.05);
-    color:#fff;
-    cursor:pointer;
-    transition:all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-    user-select:none;
+    justify-content: space-between;
+    padding: 0 24px;
+    z-index: 20;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(15, 14, 19, 0.65);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
   }
-  .scan-btn:hover{
-    background:rgba(255,255,255,0.15);
-  }
-  .scan-btn.active{
-    background:#fff;
-    color:#000;
-  }
-  
-  /* Dynamic Top Link */
-  a.badge{
-    position:fixed;
-    top:24px;left:50%;transform:translateX(-50%);
-    font-size:12px;
-    letter-spacing:3px;
-    text-transform:uppercase;
-    color:#fff;
-    background:rgba(255,255,255,0.1);
-    border: 1px solid rgba(255,255,255,0.15);
-    padding:10px 20px;
-    border-radius:24px;
-    z-index:10;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+
+  /* App title link styling */
+  a.app-title {
+    font-size: 12px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.9);
     text-decoration: none;
-    pointer-events: none;
-    transition: all 0.2s;
+    font-weight: 700;
+    transition: all 0.2s ease;
     white-space: nowrap;
-    max-width: 90vw;
     overflow: hidden;
     text-overflow: ellipsis;
+    max-width: 60vw;
   }
-  a.badge.has-link {
-    pointer-events: all;
-    background: rgba(255,255,255,0.15);
-    border-color: rgba(255,255,255,0.3);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  a.app-title.has-link {
+    color: #fff;
   }
-  a.badge.has-link:hover {
-    background: rgba(255,255,255,0.25);
-    transform: translateX(-50%) scale(1.05);
+  a.app-title.has-link:hover {
+    color: #fff;
+    text-shadow: 0 0 10px rgba(255,255,255,0.5);
   }
 
-  /* Bottom Left Tools */
-  .fab-container {
-    position: fixed;
-    bottom: 32px;
-    left: 24px;
-    z-index: 15;
-    transition: opacity 0.3s;
-  }
-  .fab-btn {
-    width: 50px;
-    height: 50px;
-    border-radius: 14px;
-    background: rgba(24, 24, 28, 0.7);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255,255,255,0.08);
-    color: #fff;
+  .header-actions {
     display: flex;
     align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-    transition: all 0.3s ease;
+    gap: 10px;
+    position: relative;
   }
-  .fab-btn:hover { background: rgba(255,255,255,0.15); }
-  
+
+  /* Clean minimal header buttons */
+  .header-btn {
+    background: transparent;
+    border: 1px solid transparent;
+    color: rgba(255, 255, 255, 0.85);
+    padding: 8px 12px;
+    border-radius: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: inherit;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    user-select: none;
+  }
+  .header-btn:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.15);
+  }
+  .header-btn:active {
+    transform: scale(0.96);
+  }
+
+  /* Quick Download header button */
+  .download-header-btn {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .download-header-btn.hidden {
+    display: none !important;
+  }
+
+  /* Icon-only button style */
+  .icon-btn {
+    padding: 8px;
+    border-radius: 12px;
+  }
+
+  /* Theme dropdown menu */
+  .theme-dropdown-wrapper {
+    position: relative;
+  }
+
   .theme-menu {
     position: absolute;
-    bottom: calc(100% + 12px);
-    left: 0;
-    background: rgba(24, 24, 28, 0.9);
+    top: calc(100% + 12px);
+    right: 0;
+    background: rgba(24, 24, 28, 0.95);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255,255,255,0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 16px;
     padding: 8px;
     display: flex;
@@ -172,11 +128,12 @@
     gap: 4px;
     opacity: 0;
     pointer-events: none;
-    transform: translateY(10px) scale(0.95);
-    transform-origin: bottom left;
+    transform: translateY(-8px) scale(0.95);
+    transform-origin: top right;
     transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.6);
     min-width: 180px;
+    z-index: 30;
   }
   .theme-menu.open {
     opacity: 1;
@@ -187,7 +144,7 @@
     padding: 10px 14px;
     border-radius: 10px;
     color: #fff;
-    font-size: 13px;
+    font-size: 12px;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -197,10 +154,78 @@
   }
   .theme-opt:hover { background: rgba(255,255,255,0.1); }
   .theme-opt.active { background: rgba(255,255,255,0.15); font-weight: bold; }
-  .menu-divider { height: 1px; background: rgba(255,255,255,0.1); margin: 4px 0; }
 
-  /* Mobile specific animations and layouts */
+  /* Floating UI styling */
+  .controls{
+    position:fixed;
+    bottom:32px;
+    left:24px;
+    right:24px;
+    margin:0 auto;
+    max-width:440px;
+    padding:8px 10px 8px 14px;
+    background:rgba(24, 24, 28, 0.65);
+    backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border:1px solid rgba(255,255,255,0.1);
+    border-radius:20px;
+    display:flex;
+    align-items:center;
+    z-index:10;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .controls .row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    width:100%;
+  }
+  .controls input{
+    flex:1;
+    min-width: 0;
+    padding:10px 12px;
+    border: none;
+    font-size:14px;
+    font-family:inherit;
+    background:transparent;
+    color:#fff;
+    outline:none;
+    transition:all 0.3s ease;
+  }
+
+  .controls input::placeholder{color:rgba(255,255,255,0.4); font-size: 13px;}
+  
+  .scan-btn{
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border:1px solid rgba(255,255,255,0.12);
+    border-radius:14px;
+    background:rgba(255,255,255,0.08);
+    color:#fff;
+    cursor:pointer;
+    transition:all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    user-select:none;
+  }
+  .scan-btn:hover{
+    background:rgba(255,255,255,0.18);
+  }
+  .scan-btn.active{
+    background:#fff;
+    color:#000;
+  }
+
+  /* Mobile specific adjustments */
   @media (max-width: 768px) {
+    .app-header {
+      padding: 0 16px;
+      height: 52px;
+    }
     .controls {
       left: 16px;
       right: 16px;
@@ -210,37 +235,23 @@
       max-width: 100%;
       background: rgba(24, 24, 28, 0.95);
       box-shadow: 0 20px 40px rgba(0,0,0,0.8), 0 0 0 100vw rgba(15, 14, 19, 0.85);
-      /* Native mobile keyboards pan the viewport natively. We just provide a subtle lift. */
       transform: translateY(-16px) scale(1.02);
     }
     .controls.focused input {
-      padding: 14px 18px; /* Do not scale up aggressively to avoid bleeding */
+      padding: 14px 18px;
       font-size: 16px;
     }
     .controls.focused .scan-btn {
-      width: 50px; /* Lock width so it never bleeds out of the flex container */
+      width: 50px;
       height: 50px;
       border-radius: 14px;
     }
-    
-    /* Move FAB to top left on mobile to clear the inputs entirely */
-    .fab-container { 
-      bottom: auto;
-      top: 20px;
-      left: 20px;
-    }
-    
-    /* Hide FAB completely when typing on mobile */
-    body:has(.controls.focused) .fab-container {
-      opacity: 0;
-      pointer-events: none;
-    }
 
-    /* Convert Theme Menu into a bottom-sheet for mobile */
+    /* Convert Theme Menu into a bottom-sheet on mobile */
     .theme-menu {
       position: fixed;
-      bottom: 0;
       top: auto;
+      bottom: 0;
       left: 0;
       right: 0;
       width: 100vw;
@@ -257,43 +268,58 @@
     }
     .theme-opt {
       padding: 16px 20px;
-      font-size: 16px;
+      font-size: 15px;
       border-radius: 16px;
       justify-content: center;
       background: rgba(255,255,255,0.03);
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
-    .theme-opt.active {
-      background: rgba(255,255,255,0.15);
-    }
-    .menu-divider {
-      margin: 8px 0;
+    .btn-text {
+      display: none;
     }
   }
 </style>
 </head>
 <body>
-<a class="badge" id="topLink" href="#" target="_blank">VOXEL QR</a>
+
+<!-- Minimal Clean Header -->
+<header class="app-header">
+  <a class="app-title" id="topLink" href="#" target="_blank">VOXEL QR</a>
+  
+  <div class="header-actions">
+    <!-- Quick Download Button (Icon Only) -->
+    <button class="header-btn icon-btn download-header-btn hidden" id="headerDownloadBtn" aria-label="Download QR Code" title="Download QR Code PNG">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+        <polyline points="7 10 12 15 17 10"></polyline>
+        <line x1="12" y1="15" x2="12" y2="3"></line>
+      </svg>
+    </button>
+
+    <!-- Theme Selection Icon Button -->
+    <div class="theme-dropdown-wrapper">
+      <button class="header-btn icon-btn" id="toolToggle" aria-label="Select Theme" title="Theme Selector">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
+        </svg>
+      </button>
+
+      <!-- Theme Dropdown Menu -->
+      <div class="theme-menu" id="themeMenu">
+        <div class="theme-opt active" data-theme="blossom">🌸 Cherry Blossom</div>
+        <div class="theme-opt" data-theme="maple">🍁 Autumn Maple</div>
+        <div class="theme-opt" data-theme="pine">🌲 Alpine Pine</div>
+        <div class="theme-opt" data-theme="frost">❄️ Winter Frost</div>
+      </div>
+    </div>
+  </div>
+</header>
+
 <canvas id="scene"></canvas>
 
-<div class="fab-container">
-  <div class="theme-menu" id="themeMenu">
-    <div class="theme-opt active" data-theme="blossom">🌸 Cherry Blossom</div>
-    <div class="theme-opt" data-theme="maple">🍁 Autumn Maple</div>
-    <div class="theme-opt" data-theme="pine">🌲 Alpine Pine</div>
-    <div class="theme-opt" data-theme="frost">❄️ Winter Frost</div>
-    <div class="menu-divider"></div>
-    <div class="theme-opt" id="downloadBtn">⬇️ Download PNG</div>
-  </div>
-  <button class="fab-btn" id="toolToggle" aria-label="Tools">
-    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path></svg>
-  </button>
-</div>
-
 <div class="controls">
-  <label>Paste a URL</label>
   <div class="row">
-    <input id="urlInput" type="text" placeholder="https://your-link-here.com" spellcheck="false" autocomplete="off">
+    <input id="urlInput" type="text" placeholder="Paste a URL" spellcheck="false" autocomplete="off">
     <button class="scan-btn" id="scanBtn" aria-label="Scan QR">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
     </button>
@@ -311,6 +337,7 @@
   /* ── Themes Engine ── */
   const THEMES = {
     blossom: {
+      bg: 0x160d16,
       qrTheme: [0xf0a0c4, 0xe07eaa, 0xd4508b, 0xcc4488, 0xec407a],
       qrEdge: [0x1b5e20, 0x2e7d32, 0x388e3c],
       foliage: [0xd4508b, 0xe07eaa, 0xcc4488, 0xf0a0c4, 0xc23d78],
@@ -318,6 +345,7 @@
       trunk: [0x7c5b3a, 0x8b6944, 0x6e5030]
     },
     maple: {
+      bg: 0x180e08,
       qrTheme: [0xe65100, 0xef6c00, 0xf57c00, 0xd84315, 0xff9800],
       qrEdge: [0x1b5e20, 0x2e7d32, 0x388e3c], 
       foliage: [0xd84315, 0xe65100, 0xef6c00, 0xf57c00, 0xbf360c],
@@ -325,6 +353,7 @@
       trunk: [0x4e342e, 0x5d4037, 0x3e2723]
     },
     pine: {
+      bg: 0x09150f,
       qrTheme: [0x2e7d32, 0x388e3c, 0x43a047, 0x4caf50],
       qrEdge: [0x1b5e20, 0x003300],
       foliage: [0x1b5e20, 0x2e7d32, 0x388e3c, 0x43a047, 0x4caf50],
@@ -332,6 +361,7 @@
       trunk: [0x3e2723, 0x4e342e, 0x5d4037]
     },
     frost: {
+      bg: 0x08111a,
       qrTheme: [0x0277bd, 0x1565c0, 0x0288d1, 0x039be5],
       qrEdge: [0x0d47a1, 0x01579b],
       foliage: [0x4fc3f7, 0x29b6f6, 0x03a9f4, 0x039be5],
@@ -341,20 +371,20 @@
   };
   
   let currentThemeKey = 'blossom';
+  let currentBgColor = new THREE.Color(THEMES.blossom.bg);
+  let targetBgColor = new THREE.Color(THEMES.blossom.bg);
 
   /* ── renderer ── */
   const canvas = document.getElementById('scene');
-  // preserveDrawingBuffer is required for allowing users to download the canvas as an image
   const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, preserveDrawingBuffer: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   
-  const bgHex = 0x0f0e13;
-  renderer.setClearColor(bgHex, 1);
+  renderer.setClearColor(currentBgColor, 1);
 
   const scene = new THREE.Scene();
-  scene.fog = new THREE.FogExp2(bgHex, 0.012);
+  scene.fog = new THREE.FogExp2(currentBgColor.getHex(), 0.012);
 
   /* ── camera ── */
   let w = window.innerWidth, h = window.innerHeight;
@@ -573,7 +603,7 @@
   const toolToggle = document.getElementById('toolToggle');
   const themeMenu = document.getElementById('themeMenu');
   const themeOpts = document.querySelectorAll('.theme-opt[data-theme]');
-  const downloadBtn = document.getElementById('downloadBtn');
+  const headerDownloadBtn = document.getElementById('headerDownloadBtn');
   
   const iconCheck = `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
   const iconClose = `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
@@ -587,12 +617,13 @@
     }
   });
 
-  // Cinematic focus animation
+  // Focus animation
   urlInput.addEventListener('focus', () => controls.classList.add('focused'));
   urlInput.addEventListener('blur', () => controls.classList.remove('focused'));
 
   scanBtn.addEventListener('mousedown', (e) => e.preventDefault());
 
+  // Toggle QR Flat View
   scanBtn.addEventListener('click',()=>{
     urlInput.blur();
     
@@ -603,11 +634,13 @@
     if (scanMode) {
       updateScanFraming();
       targetLightPos.set(0, 20, 0); 
+      headerDownloadBtn.classList.remove('hidden'); // Reveal download button in header
     } else {
       targetPos.copy(ISO_POS);
       targetLook.copy(ISO_LOOK);
       targetFrustum = frustum;
       targetLightPos.set(8, 16, 6);
+      headerDownloadBtn.classList.add('hidden'); // Hide download button when back to 3D tree
     }
     
     treeGroup.visible=!scanMode;
@@ -622,7 +655,7 @@
 
   // Close menu when clicking outside
   document.addEventListener('click', (e) => {
-    if (!e.target.closest('.fab-container')) {
+    if (!e.target.closest('.theme-dropdown-wrapper')) {
       themeMenu.classList.remove('open');
     }
   });
@@ -634,21 +667,23 @@
       e.currentTarget.classList.add('active');
       currentThemeKey = e.currentTarget.dataset.theme;
       
+      const t = THEMES[currentThemeKey];
+      targetBgColor.setHex(t.bg);
+
       buildQR(urlInput.value.trim());
       buildTree(urlInput.value.trim());
       themeMenu.classList.remove('open');
     });
   });
 
-  // Handle Download Image
-  downloadBtn.addEventListener('click', () => {
-    renderer.render(scene, camera); // Ensure frame is fresh
+  // Handle Quick Download from Header
+  headerDownloadBtn.addEventListener('click', () => {
+    renderer.render(scene, camera);
     const dataURL = renderer.domElement.toDataURL("image/png");
     const a = document.createElement('a');
     a.href = dataURL;
     a.download = `VoxelQR_${currentThemeKey}_${Date.now()}.png`;
     a.click();
-    themeMenu.classList.remove('open');
   });
 
   let debounce=null;
@@ -657,7 +692,6 @@
     debounce=setTimeout(()=>{
       const url=e.target.value.trim();
       
-      // Update the clickable badge
       if (url) {
         let validUrl = url;
         if (!/^https?:\/\//i.test(validUrl)) validUrl = 'https://' + validUrl;
@@ -685,6 +719,12 @@
   /* ── loop ── */
   function animate(){
     requestAnimationFrame(animate);
+
+    // Smooth background color transition
+    currentBgColor.lerp(targetBgColor, 0.08);
+    renderer.setClearColor(currentBgColor, 1);
+    scene.fog.color.copy(currentBgColor);
+    document.body.style.backgroundColor = '#' + currentBgColor.getHexString();
     
     camPos.lerp(targetPos,0.15);
     camLook.lerp(targetLook,0.15);

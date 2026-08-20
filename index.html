@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Voxel QR Tree</title>
 
 <!-- Web Favicons & Apple Bookmark Icons -->
@@ -31,12 +31,15 @@
     position: fixed;
     top: 0;
     left: 0;
+    right: 0;
     width: 100%;
-    height: 56px;
+    padding-top: env(safe-area-inset-top, 0px);
+    min-height: calc(56px + env(safe-area-inset-top, 0px));
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 24px;
+    padding-left: 24px;
+    padding-right: 24px;
     z-index: 20;
     border-bottom: 1px solid rgba(255, 255, 255, 0.12);
     background: rgba(15, 14, 19, 0.65);
@@ -116,14 +119,10 @@
   }
 
   /* Theme dropdown menu */
-  .theme-dropdown-wrapper {
-    position: relative;
-  }
-
   .theme-menu {
-    position: absolute;
-    top: calc(100% + 12px);
-    right: 0;
+    position: fixed;
+    top: calc(56px + env(safe-area-inset-top, 0px) + 12px);
+    right: 24px;
     background: rgba(24, 24, 28, 0.95);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
@@ -194,7 +193,7 @@
     min-width: 0;
     padding:10px 12px;
     border: none;
-    font-size:14px;
+    font-size:16px;
     font-family:inherit;
     background:transparent;
     color:#fff;
@@ -202,7 +201,7 @@
     transition:all 0.3s ease;
   }
 
-  .controls input::placeholder{color:rgba(255,255,255,0.4); font-size: 13px;}
+  .controls input::placeholder{color:rgba(255,255,255,0.4); font-size: 16px;}
   
   .scan-btn{
     width: 44px;
@@ -230,8 +229,9 @@
   /* Mobile specific adjustments */
   @media (max-width: 768px) {
     .app-header {
-      padding: 0 16px;
-      height: 52px;
+      padding-left: 16px;
+      padding-right: 16px;
+      min-height: calc(52px + env(safe-area-inset-top, 0px));
     }
     .controls {
       left: 16px;
@@ -246,7 +246,6 @@
     }
     .controls.focused input {
       padding: 14px 18px;
-      font-size: 16px;
     }
     .controls.focused .scan-btn {
       width: 50px;
@@ -304,29 +303,27 @@
     </button>
 
     <!-- Theme Selection Icon Button -->
-    <div class="theme-dropdown-wrapper">
-      <button class="header-btn icon-btn" id="toolToggle" aria-label="Select Theme" title="Theme Selector">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
-        </svg>
-      </button>
-
-      <!-- Theme Dropdown Menu -->
-      <div class="theme-menu" id="themeMenu">
-        <div class="theme-opt active" data-theme="blossom">🌸 Cherry Blossom</div>
-        <div class="theme-opt" data-theme="maple">🍁 Autumn Maple</div>
-        <div class="theme-opt" data-theme="pine">🌲 Alpine Pine</div>
-        <div class="theme-opt" data-theme="frost">❄️ Winter Frost</div>
-      </div>
-    </div>
+    <button class="header-btn icon-btn" id="toolToggle" aria-label="Select Theme" title="Theme Selector">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"></path>
+      </svg>
+    </button>
   </div>
 </header>
+
+<!-- Theme Dropdown Menu -->
+<div class="theme-menu" id="themeMenu">
+  <div class="theme-opt" data-theme="blossom">🌸 Cherry Blossom</div>
+  <div class="theme-opt" data-theme="maple">🍁 Autumn Maple</div>
+  <div class="theme-opt" data-theme="pine">🌲 Alpine Pine</div>
+  <div class="theme-opt" data-theme="frost">❄️ Winter Frost</div>
+</div>
 
 <canvas id="scene"></canvas>
 
 <div class="controls">
   <div class="row">
-    <input id="urlInput" type="text" placeholder="Paste a URL" spellcheck="false" autocomplete="off">
+    <input id="urlInput" type="text" value="dalecri.github.io" placeholder="Paste a URL" spellcheck="false" autocomplete="off">
     <button class="scan-btn" id="scanBtn" aria-label="Scan QR">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
     </button>
@@ -377,9 +374,10 @@
     }
   };
   
-  let currentThemeKey = 'blossom';
-  let currentBgColor = new THREE.Color(THEMES.blossom.bg);
-  let targetBgColor = new THREE.Color(THEMES.blossom.bg);
+  const themeKeys = Object.keys(THEMES);
+  let currentThemeKey = themeKeys[Math.floor(Math.random() * themeKeys.length)];
+  let currentBgColor = new THREE.Color(THEMES[currentThemeKey].bg);
+  let targetBgColor = new THREE.Color(THEMES[currentThemeKey].bg);
 
   /* ── renderer ── */
   const canvas = document.getElementById('scene');
@@ -662,13 +660,15 @@
 
   // Close menu when clicking outside
   document.addEventListener('click', (e) => {
-    if (!e.target.closest('.theme-dropdown-wrapper')) {
+    if (!e.target.closest('#themeMenu') && !e.target.closest('#toolToggle')) {
       themeMenu.classList.remove('open');
     }
   });
 
   // Handle Theme Switching
   themeOpts.forEach(opt => {
+    if (opt.dataset.theme === currentThemeKey) opt.classList.add('active');
+    
     opt.addEventListener('click', (e) => {
       themeOpts.forEach(o => o.classList.remove('active'));
       e.currentTarget.classList.add('active');
@@ -693,35 +693,38 @@
     a.click();
   });
 
+  function updateUrlState(url) {
+    if (url) {
+      let validUrl = url;
+      if (!/^https?:\/\//i.test(validUrl)) validUrl = 'https://' + validUrl;
+      topLink.href = validUrl;
+      
+      let displayUrl = url.replace(/^https?:\/\//i, '');
+      topLink.textContent = displayUrl.length > 25 ? displayUrl.substring(0, 25) + '...' : displayUrl;
+      topLink.classList.add('has-link');
+    } else {
+      topLink.href = '#';
+      topLink.textContent = 'VOXEL QR';
+      topLink.classList.remove('has-link');
+    }
+
+    buildQR(url);
+    buildTree(url);
+    if(scanMode) updateScanFraming();
+  }
+
   let debounce=null;
   urlInput.addEventListener('input',e=>{
     clearTimeout(debounce);
     debounce=setTimeout(()=>{
-      const url=e.target.value.trim();
-      
-      if (url) {
-        let validUrl = url;
-        if (!/^https?:\/\//i.test(validUrl)) validUrl = 'https://' + validUrl;
-        topLink.href = validUrl;
-        
-        let displayUrl = url.replace(/^https?:\/\//i, '');
-        topLink.textContent = displayUrl.length > 25 ? displayUrl.substring(0, 25) + '...' : displayUrl;
-        topLink.classList.add('has-link');
-      } else {
-        topLink.href = '#';
-        topLink.textContent = 'VOXEL QR';
-        topLink.classList.remove('has-link');
-      }
-
-      buildQR(url);
-      buildTree(url);
-      if(scanMode) updateScanFraming();
+      updateUrlState(e.target.value.trim());
     },200);
   });
 
   /* ── init ── */
-  buildQR('');
-  buildTree('');
+  const defaultUrl = 'dalecri.github.io';
+  urlInput.value = defaultUrl;
+  updateUrlState(defaultUrl);
 
   /* ── loop ── */
   function animate(){

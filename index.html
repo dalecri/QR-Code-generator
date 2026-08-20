@@ -608,7 +608,7 @@
     const dataURL = renderer.domElement.toDataURL("image/png");
     const a = document.createElement('a');
     a.href = dataURL;
-    a.download = `VoxelQR_${currentThemeKey}_${Date.now()}.png`;
+    a.download = `voxel-qr.png`;
     a.click();
   });
 
@@ -621,8 +621,10 @@
         let validUrl = url;
         if (!/^https?:\/\//i.test(validUrl)) validUrl = 'https://' + validUrl;
         topLink.href = validUrl;
+        currentValidUrl = validUrl;
       } else {
         topLink.href = '#';
+        currentValidUrl = '';
       }
       buildQR(url);
       buildTree(url);
@@ -631,6 +633,60 @@
   });
 
   /* ── init ── */
+  let currentValidUrl = 'https://dalecri.github.io';
+  const raycaster = new THREE.Raycaster();
+  const pointer = new THREE.Vector2();
+  let isQRPressed = false;
+  let qrTargetY = 0;
+  let startPointer = {x:0, y:0};
+
+  canvas.addEventListener('pointermove', (e) => {
+    if (!scanMode) {
+      document.body.style.cursor = 'default';
+      return;
+    }
+    pointer.x = (e.clientX / window.innerWidth) * 2 - 1;
+    pointer.y = -(e.clientY / window.innerHeight) * 2 + 1;
+    
+    raycaster.setFromCamera(pointer, camera);
+    const intersects = raycaster.intersectObjects(qrGroup.children);
+    document.body.style.cursor = intersects.length > 0 ? 'pointer' : 'default';
+  });
+
+  canvas.addEventListener('pointerdown', (e) => {
+    if (!scanMode) return;
+    pointer.x = (e.clientX / window.innerWidth) * 2 - 1;
+    pointer.y = -(e.clientY / window.innerHeight) * 2 + 1;
+    startPointer = {x: e.clientX, y: e.clientY};
+    
+    raycaster.setFromCamera(pointer, camera);
+    const intersects = raycaster.intersectObjects(qrGroup.children);
+    if (intersects.length > 0) {
+      isQRPressed = true;
+      qrTargetY = -0.35; // Subtle press down effect
+    }
+  });
+
+  window.addEventListener('pointerup', (e) => {
+    if (!scanMode) return;
+    qrTargetY = 0; // Release press effect
+    
+    if (isQRPressed) {
+      const dx = Math.abs(e.clientX - startPointer.x);
+      const dy = Math.abs(e.clientY - startPointer.y);
+      
+      // Ensure the user clicked, not dragged/scrolled
+      if (dx < 5 && dy < 5) {
+         raycaster.setFromCamera(pointer, camera);
+         const intersects = raycaster.intersectObjects(qrGroup.children);
+         if (intersects.length > 0 && currentValidUrl) {
+           window.open(currentValidUrl, '_blank');
+         }
+      }
+    }
+    isQRPressed = false;
+  });
+
   applyTheme(currentThemeKey); // Apply random start theme
   urlInput.value = 'dalecri.github.io';
   topLink.href = 'https://dalecri.github.io';
@@ -659,6 +715,8 @@
     
     currentFrustum += (targetFrustum - currentFrustum) * 0.15;
     updateCameraBounds();
+    
+    qrGroup.position.y += (qrTargetY - qrGroup.position.y) * 0.25;
     
     for(const p of petals){
       p.mesh.position.y-=p.speed;
